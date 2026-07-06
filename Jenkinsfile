@@ -1,11 +1,9 @@
 pipeline {
-    agent {
-        label 'devops'          // Change to your agent label or use 'any'
-    }
+    agent any
 
     environment {
         TF_IN_AUTOMATION = 'true'
-        AWS_DEFAULT_REGION = 'ap-south-1'
+        AWS_DEFAULT_REGION = 'us-east-1'
     }
 
     stages {
