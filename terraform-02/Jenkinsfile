@@ -2,23 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Terraform Init') {
             steps {
-                checkout scm
+                dir('terraform-02') {
+                    sh 'terraform init -input=false'
+                }
             }
         }
 
-        stage('Terraform Init') {
-            steps {
-               sh 'terraform init -input=false'
-                }
-            }
-
         stage('Terraform Plan') {
             steps {
-               sh 'terraform plan -out=tfplan -input=false'
+                dir('terraform-02') {
+                    sh 'terraform plan -out=tfplan -input=false'
                 }
             }
+        }
 
         stage('Approval for Apply') {
             steps {
@@ -28,14 +26,16 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-               sh 'terraform apply -input=false tfplan'
+                dir('terraform-02') {
+                    sh 'terraform apply -input=false tfplan'
                 }
             }
+        }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: 'tfplan', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'terraform-02/tfplan', allowEmptyArchive: true
             cleanWs()
         }
     }
