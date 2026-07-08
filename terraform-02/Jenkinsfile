@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+
+    tools {
+        terraform 'terraform-1.9.0'
+    }
+
+    stages {
+        stage('Terraform Init') {
+            steps {
+                dir('terraform-02') {
+                    sh 'terraform init -input=false'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                dir('terraform-02') {
+                    sh 'terraform plan -out=tfplan -input=false'
+                }
+            }
+        }
+
+        stage('Approval for Apply') {
+            steps {
+                input message: "Do you want to apply this Terraform plan?", ok: "Apply"
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir('terraform-02') {
+                    sh 'terraform apply -input=false tfplan'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'terraform-02/tfplan', allowEmptyArchive: true
+            cleanWs()
+        }
+    }
+}
