@@ -5,34 +5,41 @@ pipeline {
         terraform 'terraform-1.9.0'
     }
 
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'  
+    }
+
     stages {
         stage('Terraform Init') {
             steps {
-                  withCredentials([
+                withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                dir('terraform-04') {
-                    sh 'terraform init -input=false'
+                    dir('terraform-04') {
+                        sh 'terraform init -input=false'
+                    }
                 }
             }
-        }
         }
 
         stage('Terraform Plan') {
             steps {
-                  withCredentials([
+                withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                dir('terraform-04') {
-                    sh 'terraform plan -out=tfplan -input=false'
+                    dir('terraform-04') {
+                        sh 'terraform plan -out=tfplan -input=false -no-color'
+                    }
                 }
             }
         }
-        }
 
         stage('Approval for Apply') {
+            when {
+                branch 'main'
+            }
             steps {
                 input message: "Do you want to apply this Terraform plan?", ok: "Apply"
             }
@@ -40,21 +47,21 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                  withCredentials([
+                withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                dir('terraform-04') {
-                    sh 'terraform apply -input=false tfplan'
+                    dir('terraform-04') {
+                        sh 'terraform apply -input=false -auto-approve tfplan'
+                    }
                 }
             }
         }
     }
-    }
 
     post {
         always {
-            archiveArtifacts artifacts: 'terraform-02/tfplan', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'terraform-04/tfplan', allowEmptyArchive: true
             cleanWs()
         }
     }
