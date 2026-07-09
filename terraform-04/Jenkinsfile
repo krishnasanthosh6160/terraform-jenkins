@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Terraform Init') {
             steps {
-                dir('terraform-03') {
+                dir('terraform-04') {
                     sh 'terraform init -input=false'
                 }
             }
@@ -16,7 +16,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                dir('terraform-03') {
+                dir('terraform-04') {
                     sh 'terraform plan -out=tfplan -input=false'
                 }
             }
@@ -30,7 +30,7 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                dir('terraform-03') {
+                dir('terraform-04') {
                     sh 'terraform apply -input=false tfplan'
                 }
             }
